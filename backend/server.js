@@ -1,4 +1,6 @@
 // backend/server.js
+require('dotenv').config(); // ✅ DEVE ESSERE LA PRIMA RIGA ASSOLUTA
+
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -6,65 +8,118 @@ const cors = require('cors');
 const axios = require('axios');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const { z } = require('zod');
 
 const app = express();
 const server = http.createServer(app);
 
-// Configurazione Socket.io con CORS per il frontend React
+// --- MISURE DI SICUREZZA ---
+app.use(helmet());
+app.use(express.json());
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { success: false, error: "Troppe richieste effettuate da questo IP, riprova più tardi." }
+});
+app.use('/api/', limiter);
+
+// ✅ Stripe inizializzato correttamente
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const io = new Server(server, {
   cors: {
-    origin: '*',
+    origin: CLIENT_URL,
     methods: ['GET', 'POST']
   }
 });
 
-app.use(cors());
-app.use(express.json());
+app.use(cors({ origin: CLIENT_URL }));
 
-const JWT_SECRET = 'chiave_segreta_super_sicura_skillsync';
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_only_for_dev';
 
-// DATI IN MEMORIA
-let usersDatabase = [];
-let messagesDatabase = []; // Memoria messaggi chat
+// --- CONNESSIONE A MONGODB ATLAS ---
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log('MongoDB Atlas Connesso con Successo!'))
+  .catch(err => console.error('Errore di connessione a MongoDB:', err));
 
-let jobsDatabase = [
-  {
-    id: "job_1",
-    company_name: "TechStart Italia",
-    title: "Sviluppatore React & Node.js",
-    description: "Cerchiamo un freelancer per creare il frontend di una piattaforma SaaS.",
-    budget: 1500,
-    required_skills: ["React", "JavaScript", "Node.js"]
-  }
-];
+// --- MODELLI MONGOOSE ---
+const jobSchema = new mongoose.Schema({
+  company_name: String,
+  poster_name: String,
+  poster_title: String,
+  company_avatar: String,
+  category: { type: String, default: 'dev' },
+  title: String,
+  description: String,
+  budget: Number,
+  status: { type: String, default: 'open' },
+  createdAt: { type: Date, default: Date.now }
+});
 
-let freelancersDatabase = [
-  {
-    id: "free_1",
-    name: "Marco Rossi",
-    title: "Senior Full Stack Developer",
-    skills: ["React", "Node.js", "Python"],
-    bio: "Esperto nello sviluppo di applicazioni web veloci e moderne."
-  }
-];
+const Job = mongoose.model('Job', jobSchema);
 
-// --- LOGICA SOCKET.IO PER CHAT IN TEMPO REALE ---
+const userSchema = new mongoose.Schema({
+  name: String,
+  email: { type: String, unique: true },
+  password: String,
+  role: { type: String, enum: ['freelancer', 'company'], default: 'freelancer' },
+  createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// --- MIDDLEWARE JWT ---
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) return res.status(401).json({ success: false, error: "Accesso negato. Token mancante." });
+
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) return res.status(403).json({ success: false, error: "Token non valido o scaduto." });
+    req.user = user;
+    next();
+  });
+};
+
+// --- SCHEMI ZOD ---
+const RegisterSchema = z.object({
+  name: z.string().trim().min(2).max(50),
+  email: z.string().email(),
+  password: z.string().min(8),
+  role: z.enum(['freelancer', 'company']).optional()
+});
+
+const JobSchema = z.object({
+  company_name: z.string().min(1),
+  poster_name: z.string().min(1),
+  poster_title: z.string().optional(),
+  company_avatar: z.string().optional(),
+  category: z.string().default('dev'),
+  title: z.string().min(3).max(100),
+  description: z.string().min(10),
+  budget: z.number().positive()
+});
+
+let messagesDatabase = [];
+
+// --- LOGICA SOCKET.IO ---
 io.on('connection', (socket) => {
   console.log(`⚡ Utente connesso alla Chat: ${socket.id}`);
 
-  // Entra in una stanza di chat specifica per un progetto o trattativa
   socket.on('join_room', (roomId) => {
     socket.join(roomId);
-    // Invia i messaggi precedenti della stanza
     const roomMessages = messagesDatabase.filter(m => m.roomId === roomId);
     socket.emit('load_messages', roomMessages);
   });
 
-  // Ricezione e invio nuovo messaggio
   socket.on('send_message', (data) => {
     const { roomId, sender, text } = data;
-
-    // MODERAZIONE AUTOMATICA: Filtra condivisione contatti esterni (Email, Telefono)
     const phoneRegex = /(\+?\d{1,4}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/;
     const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/;
 
@@ -86,8 +141,6 @@ io.on('connection', (socket) => {
     };
 
     messagesDatabase.push(newMessage);
-
-    // Invia il messaggio a tutti i partecipanti della stanza
     io.to(roomId).emit('receive_message', newMessage);
   });
 
@@ -99,17 +152,22 @@ io.on('connection', (socket) => {
 // --- API REGISTRAZIONE & LOGIN ---
 app.post('/api/register', async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    const existingUser = usersDatabase.find(u => u.email === email);
+    const validation = RegisterSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ success: false, error: "Dati non validi", details: validation.error.format() });
+    }
+
+    const { name, email, password, role } = validation.data;
+    const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ success: false, error: "Email già registrata." });
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    const newUser = { id: `user_${usersDatabase.length + 1}`, name, email, password: hashedPassword, role: role || 'freelancer' };
-    usersDatabase.push(newUser);
+    const newUser = new User({ name, email, password: hashedPassword, role: role || 'freelancer' });
+    await newUser.save();
 
-    const token = jwt.sign({ id: newUser.id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: newUser._id, email: newUser.email, role: newUser.role }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ success: true, token, user: { name: newUser.name, email: newUser.email, role: newUser.role } });
   } catch (error) {
     res.status(500).json({ success: false, error: "Errore interno del server" });
@@ -119,35 +177,90 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = usersDatabase.find(u => u.email === email);
+    if (!email || !password) return res.status(400).json({ success: false, error: "Email e password richieste." });
+
+    const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ success: false, error: "Credenziali non valide." });
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ success: false, error: "Credenziali non valide." });
 
-    const token = jwt.sign({ id: user.id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: '1h' });
     res.json({ success: true, token, user: { name: user.name, email: user.email, role: user.role } });
   } catch (error) {
     res.status(500).json({ success: false, error: "Errore interno del server" });
   }
 });
 
-// --- API LAVORI E MATCHING ---
-app.get('/api/jobs', (req, res) => res.json({ success: true, jobs: jobsDatabase }));
-app.post('/api/jobs', (req, res) => {
-  const { company_name, title, description, budget } = req.body;
-  const newJob = { id: `job_${jobsDatabase.length + 1}`, company_name, title, description, budget };
-  jobsDatabase.push(newJob);
-  res.json({ success: true, job: newJob });
+// --- API LAVORI ---
+app.get('/api/jobs', async (req, res) => {
+  try {
+    const jobs = await Job.find().sort({ createdAt: -1 });
+    res.json({ success: true, jobs });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Errore nel recupero dei lavori" });
+  }
 });
 
-app.get('/api/freelancers', (req, res) => res.json({ success: true, freelancers: freelancersDatabase }));
-app.post('/api/match-job', async (req, res) => {
+app.post('/api/jobs', authenticateToken, async (req, res) => {
+  try {
+    const validation = JobSchema.safeParse(req.body);
+    if (!validation.success) {
+      return res.status(400).json({ success: false, error: "Dati lavoro non validi", details: validation.error.format() });
+    }
+
+    const newJob = new Job(validation.data);
+    await newJob.save();
+    res.json({ success: true, job: newJob });
+  } catch (error) {
+    res.status(500).json({ success: false, error: "Errore durante il salvataggio del lavoro" });
+  }
+});
+
+// --- API PAGAMENTI STRIPE ESCROW ---
+app.post('/api/create-checkout-session', authenticateToken, async (req, res) => {
+  try {
+    const { jobId } = req.body;
+    
+    const job = await Job.findById(jobId);
+    if (!job) return res.status(404).json({ success: false, error: "Progetto non trovato." });
+
+    const totalAmount = job.budget;
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'eur',
+            product_data: {
+              name: `Escrow Progetto: ${job.title}`,
+              description: `Fondi protetti in cassaforte digitale`,
+            },
+            unit_amount: Math.round(totalAmount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${CLIENT_URL}/dashboard?payment=success&jobId=${jobId}`,
+      cancel_url: `${CLIENT_URL}/jobs`,
+    });
+
+    res.json({ success: true, url: session.url });
+  } catch (error) {
+    console.error('Errore Stripe:', error);
+    res.status(500).json({ success: false, error: "Errore durante la creazione della sessione di pagamento" });
+  }
+});
+
+// --- API MATCHING IA ---
+app.post('/api/match-job', authenticateToken, async (req, res) => {
   try {
     const { job_description } = req.body;
     const response = await axios.post('http://127.0.0.1:5001/match', {
       job_description,
-      freelancers: freelancersDatabase
+      freelancers: []
     });
     res.json(response.data);
   } catch (error) {
@@ -155,8 +268,8 @@ app.post('/api/match-job', async (req, res) => {
   }
 });
 
-// AVVIO SERVER CON HTTP + SOCKET.IO
-const PORT = 5000;
+// AVVIO SERVER
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
-  console.log(`🚀 Server Backend + Chat Socket.io attivo su http://localhost:${PORT}`);
+  console.log(`🚀 Server Backend blindato e attivo su http://localhost:${PORT}`);
 });

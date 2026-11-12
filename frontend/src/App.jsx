@@ -3,8 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react
 import { 
   Sparkles, Briefcase, Users, ShieldCheck, ArrowRight, CheckCircle2, 
   User, Building2, PlusCircle, Search, Zap, DollarSign, Shield, 
-  Lock, MessageSquare, LayoutDashboard, Star, ChevronRight, CreditCard,
-  Radar, ArrowDown
+  Lock, MessageSquare, LayoutDashboard, Star, ChevronRight, Upload,
+  Palette, Code2, PenTool, Megaphone, Video, BriefcaseIcon, Layers
 } from 'lucide-react';
 import axios from 'axios';
 
@@ -13,74 +13,68 @@ import PrivacyPage from './PrivacyPage';
 import ChatPage from './ChatPage';
 import DashboardPage from './DashboardPage';
 
-// --- NAVBAR ---
-function Navbar({ user, setUser, mode, setMode }) {
+// --- LISTA CATEGORIE GLOBALI ---
+const CATEGORIES = [
+  { id: 'all', label: 'Tutte le Categorie', icon: Layers },
+  { id: 'design', label: 'Design & Creatività', icon: Palette },
+  { id: 'dev', label: 'Sviluppo & IT', icon: Code2 },
+  { id: 'writing', label: 'Scrittura & Traduzioni', icon: PenTool },
+  { id: 'marketing', label: 'Marketing & Sales', icon: Megaphone },
+  { id: 'media', label: 'Video, Audio & Musica', icon: Video },
+  { id: 'consulting', label: 'Business & Consulenza', icon: BriefcaseIcon },
+];
+
+// --- NAVBAR GRANDE E BEN LEGGIBILE ---
+function Navbar({ user, setUser }) {
   return (
-    <nav className="sticky top-0 z-50 border-b border-slate-800/80 bg-slate-950/80 backdrop-blur-2xl">
-      <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-        {/* LOGO */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="bg-gradient-to-br from-indigo-600 to-purple-600 p-2.5 rounded-2xl shadow-lg shadow-indigo-500/30 border border-indigo-400/30">
-            <Sparkles className="w-6 h-6 text-white group-hover:rotate-12 transition-transform duration-300" />
+    <nav className="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur-2xl">
+      <div className="max-w-7xl mx-auto px-8 h-24 flex justify-between items-center">
+        {/* LOGO GRANDE */}
+        <Link to="/" className="flex items-center gap-4 group">
+          <div className="relative">
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-600 to-emerald-500 opacity-80 blur-md group-hover:opacity-100 transition duration-300"></div>
+            <div className="relative bg-slate-950 p-3 rounded-2xl border border-slate-800">
+              <Sparkles className="w-7 h-7 text-blue-400 group-hover:rotate-12 transition-transform duration-300" />
+            </div>
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-white tracking-tight">GhostMatch</h1>
-              <span className="bg-gradient-to-r from-blue-500 to-purple-500 text-white text-[10px] font-black px-2 py-0.5 rounded-md">AI 2.0</span>
-            </div>
-            <span className="text-[10px] text-purple-400 font-bold tracking-wider block -mt-0.5">ISCRIZIONE & ANNUNCI 100% GRATIS</span>
+            <h1 className="text-2xl font-black bg-gradient-to-r from-white via-slate-100 to-blue-400 bg-clip-text text-transparent tracking-tight">
+              SkillSync <span className="text-blue-500">AI</span>
+            </h1>
+            <span className="text-xs text-emerald-400 font-bold tracking-widest block -mt-0.5">GLOBAL FREELANCE MARKETPLACE</span>
           </div>
         </Link>
 
-        {/* TOGGLE MODALITÀ FREELANCER / AZIENDA */}
-        <div className="hidden lg:flex items-center bg-slate-900/90 border border-slate-800 p-1.5 rounded-2xl">
-          <button 
-            onClick={() => setMode('freelancer')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 ${
-              mode === 'freelancer' 
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <User className="w-3.5 h-3.5" /> Sono Freelancer <span className="text-[9px] opacity-75 bg-black/20 px-1.5 py-0.5 rounded">Cerco Clienti</span>
-          </button>
-          <button 
-            onClick={() => setMode('company')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-300 flex items-center gap-2 ${
-              mode === 'company' 
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Building2 className="w-3.5 h-3.5" /> Sono un'Azienda <span className="text-[9px] opacity-75 bg-black/20 px-1.5 py-0.5 rounded">Cerco Talenti</span>
-          </button>
-        </div>
-
-        {/* LINK NAVIGAZIONE */}
-        <div className="hidden md:flex items-center gap-6 text-xs font-semibold text-slate-300">
-          <Link to="/jobs" className="hover:text-purple-400 transition-colors">Esplora Lavori</Link>
-          <Link to="/freelancers" className="hover:text-purple-400 transition-colors">Cerca Freelancer</Link>
-          <Link to="/post-job" className="hover:text-purple-400 transition-colors">Pubblica Progetto (€0)</Link>
-          <Link to="/chat" className="hover:text-purple-400 transition-colors flex items-center gap-1.5">
-            <MessageSquare className="w-3.5 h-3.5 text-slate-400" /> Chat
+        {/* VOCI DI MENU */}
+        <div className="hidden lg:flex items-center gap-8 text-base font-semibold text-slate-200">
+          <Link to="/jobs" className="hover:text-blue-400 transition-colors py-2">Esplora Lavori</Link>
+          <Link to="/freelancers" className="hover:text-blue-400 transition-colors flex items-center gap-2 py-2">
+            <Sparkles className="w-5 h-5 text-blue-400" /> Cerca Freelancer
           </Link>
-          <Link to="/dashboard" className="bg-slate-900 border border-slate-800 text-white px-3.5 py-2 rounded-xl hover:border-purple-500/50 transition-all flex items-center gap-1.5">
-            <LayoutDashboard className="w-3.5 h-3.5 text-purple-400" /> Dashboard
+          <Link to="/post-job" className="hover:text-blue-400 transition-colors py-2">Pubblica Progetto</Link>
+          <Link to="/chat" className="hover:text-blue-400 transition-colors flex items-center gap-2 py-2">
+            <MessageSquare className="w-5 h-5 text-slate-400" /> Chat Direct
+          </Link>
+          <Link to="/dashboard" className="hover:text-emerald-400 transition-colors flex items-center gap-2 font-bold text-white bg-slate-900 border border-slate-700 px-5 py-2.5 rounded-2xl shadow-lg">
+            <LayoutDashboard className="w-5 h-5 text-emerald-400" /> Dashboard
           </Link>
         </div>
 
-        {/* UTENTE / REGISTRAZIONE */}
-        <div className="flex items-center gap-3">
+        {/* ACCEDI / REGISTRATI */}
+        <div className="flex items-center gap-5">
           {user ? (
-            <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 px-3.5 py-2 rounded-xl text-xs">
-              <span className="text-slate-300">Ciao, <strong className="text-white">{user.name}</strong> ({user.role === 'company' ? 'Azienda' : 'Freelancer'})</span>
-              <button onClick={() => setUser(null)} className="text-red-400 hover:text-red-300 font-bold">Esci</button>
+            <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 px-5 py-2.5 rounded-2xl">
+              <span className="text-sm text-slate-300">Ciao, <strong className="text-white">{user.name}</strong></span>
+              <button onClick={() => setUser(null)} className="text-sm text-red-400 hover:text-red-300 font-bold">Esci</button>
             </div>
           ) : (
             <>
-              <Link to="/login" className="text-xs font-bold text-slate-300 hover:text-white px-3 py-2">Accedi</Link>
-              <Link to="/register" className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg shadow-purple-600/30 hover:opacity-90 transition-all">
-                Registrati Gratis
+              <Link to="/login" className="text-sm font-bold text-slate-200 hover:text-white px-4 py-2.5 transition-colors">Accedi</Link>
+              <Link to="/register" className="relative group">
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
+                <span className="relative bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold px-6 py-3 rounded-2xl block shadow-xl">
+                  Registrati Gratis
+                </span>
               </Link>
             </>
           )}
@@ -93,13 +87,13 @@ function Navbar({ user, setUser, mode, setMode }) {
 // --- FOOTER ---
 function Footer() {
   return (
-    <footer className="border-t border-slate-900 bg-slate-950 py-10 mt-28">
+    <footer className="border-t border-slate-900 bg-slate-950/80 backdrop-blur-xl py-12 mt-28">
       <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-xs text-slate-500">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-purple-500" />
-          <span>© 2026 GhostMatch AI 2.0 Inc. Iscrizione e pubblicazione gratis. Commissione 20% trattenuta solo a consegna completata.</span>
+          <Sparkles className="w-4 h-4 text-blue-500" />
+          <span>© 2026 SkillSync AI Inc. Piattaforma Globale di Intermediazione Tecnologica Autonoma.</span>
         </div>
-        <div className="flex gap-6 font-medium">
+        <div className="flex gap-8 font-medium">
           <Link to="/terms" className="hover:text-slate-300 transition-colors">Termini di Servizio</Link>
           <Link to="/privacy" className="hover:text-slate-300 transition-colors">Privacy Policy (GDPR)</Link>
         </div>
@@ -108,88 +102,87 @@ function Footer() {
   );
 }
 
-// --- HOMEPAGE ---
-function HomePage({ mode }) {
+// --- HOMEPAGE UNIVERSELE ---
+function HomePage() {
   return (
-    <div className="py-12 space-y-16 relative overflow-hidden">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-gradient-to-b from-purple-600/20 via-indigo-600/10 to-transparent blur-[140px] rounded-full pointer-events-none -z-10"></div>
+    <div className="space-y-24 py-12 relative overflow-hidden">
+      <div className="absolute top-10 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-blue-600/15 blur-[120px] rounded-full pointer-events-none -z-10"></div>
+      <div className="absolute top-80 right-10 w-[400px] h-[250px] bg-emerald-500/10 blur-[100px] rounded-full pointer-events-none -z-10"></div>
 
-      {/* BADGE DI STATO */}
-      <div className="flex flex-wrap justify-center gap-3">
-        <div className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/30 px-4 py-1.5 rounded-full text-emerald-400 text-xs font-bold shadow-lg shadow-emerald-500/10 backdrop-blur-md">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-          Smart Escrow Liquidity: €2.48M
+      {/* HERO SECTION AGGIORNATA PER TUTTI I FREELANCER */}
+      <section className="text-center max-w-4xl mx-auto space-y-8 pt-6">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-xs font-bold shadow-lg shadow-emerald-500/5 backdrop-blur-md animate-pulse">
+          <Sparkles className="w-4 h-4" /> 🌐 MARKETPLACE GLOBALE: Per ogni Talento e Azienda nel Mondo
         </div>
-        <div className="inline-flex items-center gap-2 bg-purple-500/10 border border-purple-500/30 px-4 py-1.5 rounded-full text-purple-300 text-xs font-bold shadow-lg shadow-purple-500/10 backdrop-blur-md">
-          <Radar className="w-3.5 h-3.5 text-purple-400 animate-spin" />
-          Radar Scanner Attivo
-        </div>
-      </div>
 
-      {/* HERO SECTION */}
-      <section className="text-center max-w-5xl mx-auto space-y-6 pt-4">
         <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-[1.15]">
-          {mode === 'freelancer' ? (
-            <>
-              Trova le migliori <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent">Aziende con Budget Escrow</span> senza intermediari.
-            </>
-          ) : (
-            <>
-              Ingaggia i migliori <span className="bg-gradient-to-r from-purple-400 via-indigo-300 to-blue-400 bg-clip-text text-transparent">Talenti Top 1% Verificati dall'IA</span> senza rischi.
-            </>
-          )}
+          Il Marketplace Globale per ogni <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">Talento Freelance</span>
         </h1>
 
-        <p className="text-slate-400 text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
-          L'algoritmo di matching analizza DNA professionale, sovrapposizione fuso orario, compatibilità culturale e budget garantito. Zero perdite di tempo, 100% tutele[cite: 3].
+        <p className="text-slate-400 text-base md:text-lg max-w-3xl mx-auto leading-relaxed font-medium">
+          Dal Design allo Sviluppo, dal Marketing alla Scrittura. Connetti la tua azienda ai migliori professionisti del pianeta in pochi secondi grazie al matching vettoriale IA e ai pagamenti protetti in Escrow.
         </p>
 
-        {/* METRICHE CHIAVE */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto pt-8">
-          <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl backdrop-blur-xl text-center space-y-1 hover:border-purple-500/40 transition-all">
-            <span className="text-2xl md:text-3xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">99.2%</span>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Accuratezza AI Match</p>
-          </div>
-
-          <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl backdrop-blur-xl text-center space-y-1 hover:border-purple-500/40 transition-all">
-            <span className="text-2xl md:text-3xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">100%</span>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Budget Deposito Escrow</p>
-          </div>
-
-          <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl backdrop-blur-xl text-center space-y-1 hover:border-purple-500/40 transition-all">
-            <span className="text-2xl md:text-3xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">0%</span>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ghosting Garantito</p>
-          </div>
-
-          <div className="bg-slate-900/60 border border-slate-800/80 p-5 rounded-2xl backdrop-blur-xl text-center space-y-1 hover:border-purple-500/40 transition-all">
-            <span className="text-2xl md:text-3xl font-black bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">&lt; 15 min</span>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tempo Medio Risposta</p>
-          </div>
-        </div>
-
-        <div className="pt-8 flex justify-center">
-          <div className="p-3 bg-slate-900 border border-slate-800 rounded-full text-slate-400 animate-bounce">
-            <ArrowDown className="w-4 h-4 text-purple-400" />
-          </div>
+        <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
+          <Link to="/register" className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 rounded-2xl blur opacity-75 group-hover:opacity-100 transition duration-300"></div>
+            <span className="relative bg-slate-950 text-white font-bold px-8 py-4 rounded-2xl block text-sm flex items-center justify-center gap-2 border border-slate-800">
+              Inizia Gratis Ora <ArrowRight className="w-4 h-4 text-blue-400 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+          <Link to="/jobs" className="bg-slate-900/80 hover:bg-slate-900 border border-slate-800 text-slate-200 font-bold px-8 py-4 rounded-2xl text-sm transition-all text-center backdrop-blur-xl">
+            Esplora Bacheca Lavori
+          </Link>
         </div>
       </section>
 
-      {/* BOTTONI D'AZIONE */}
-      <section className="flex flex-col sm:flex-row justify-center gap-4 max-w-md mx-auto pt-2">
-        <Link to="/register" className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold px-8 py-4 rounded-2xl text-xs text-center shadow-lg shadow-purple-600/30 hover:opacity-95 transition-all">
-          Inizia Subito Gratis (€0)
-        </Link>
-        <Link to="/jobs" className="bg-slate-900 border border-slate-800 hover:border-purple-500/40 text-slate-200 font-bold px-8 py-4 rounded-2xl text-xs text-center transition-all">
-          Esplora Progetti
-        </Link>
+      {/* GRIGLIA MACRO-CATEGORIE VISIVE */}
+      <section className="max-w-6xl mx-auto space-y-6">
+        <h2 className="text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Esplora i Settori Professionali</h2>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {CATEGORIES.filter(c => c.id !== 'all').map((cat) => {
+            const IconComponent = cat.icon;
+            return (
+              <Link 
+                key={cat.id} 
+                to="/jobs" 
+                className="bg-slate-900/40 hover:bg-slate-900 border border-slate-800/80 hover:border-blue-500/40 p-5 rounded-2xl flex flex-col items-center gap-3 text-center transition-all group backdrop-blur-xl"
+              >
+                <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl group-hover:border-blue-500/50 group-hover:scale-110 transition-all">
+                  <IconComponent className="w-6 h-6 text-blue-400" />
+                </div>
+                <span className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">{cat.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* STATS STRIP */}
+      <section className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto bg-slate-900/40 border border-slate-800/80 backdrop-blur-2xl p-8 rounded-3xl shadow-2xl relative">
+        <div className="text-center space-y-1 border-b md:border-b-0 md:border-r border-slate-800/80 pb-6 md:pb-0">
+          <span className="text-3xl md:text-4xl font-black bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">+5.000 Progetti</span>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">Completati da creativi e sviluppatori</p>
+        </div>
+
+        <div className="text-center space-y-1 border-b md:border-b-0 md:border-r border-slate-800/80 pb-6 md:pb-0">
+          <span className="text-3xl md:text-4xl font-black bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">100.000 €+</span>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">In compensi protetti in Escrow</p>
+        </div>
+
+        <div className="text-center space-y-1">
+          <span className="text-3xl md:text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">0% Commissioni</span>
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-1">Sulla registrazione e pubblicazione</p>
+        </div>
       </section>
     </div>
   );
 }
 
-// --- BACHECA LAVORI ---
+// --- BACHECA LAVORI CON FILTRI PER CATEGORIA VELOCI ---
 function JobsPage() {
   const [jobs, setJobs] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
     axios.get('http://localhost:5000/api/jobs')
@@ -197,50 +190,99 @@ function JobsPage() {
       .catch(err => console.error(err));
   }, []);
 
-  const handleApply = (job) => {
-    const gross = parseFloat(job.budget) || 1000;
-    const fee = gross * 0.20;
-    const net = gross - fee;
-    alert(`Candidatura inviata per "${job.title}"!\n\nImporto Progetto: €${gross}\nCommissione GhostMatch AI (20%): €${fee.toFixed(2)}\nIl tuo netto sarà: €${net.toFixed(2)}`);
-  };
+  // Filtra i lavori in base alla categoria selezionata
+  const filteredJobs = selectedCategory === 'all' 
+    ? jobs 
+    : jobs.filter(j => j.category === selectedCategory);
 
   return (
     <div className="py-12 space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black text-white tracking-tight">Bacheca Lavori</h2>
-          <p className="text-xs text-slate-400 mt-1">Pubblicazione e candidature 100% gratuite. Trattenuta del 20% solo ad approvazione lavoro.</p>
+          <h2 className="text-3xl font-black text-white tracking-tight">Bacheca Lavori Globale</h2>
+          <p className="text-xs text-slate-400 mt-1">Sfoglia i progetti attivi pubblicati dalle aziende di tutto il mondo</p>
         </div>
-        <Link to="/post-job" className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-6 py-3.5 rounded-2xl shadow-lg shadow-purple-600/20 transition-all">
-          + Pubblica Nuovo Lavoro (€0)
+        <Link to="/post-job" className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-6 py-3.5 rounded-2xl shadow-lg shadow-emerald-600/20 transition-all">
+          + Pubblica un Nuovo Lavoro
         </Link>
       </div>
 
+      {/* BADGES FILTRI CATEGORIE VELOCI */}
+      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+        {CATEGORIES.map((cat) => {
+          const IconComponent = cat.icon;
+          const isActive = selectedCategory === cat.id;
+          return (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl text-xs font-bold transition-all shrink-0 border ${
+                isActive 
+                  ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-600/20' 
+                  : 'bg-slate-900/60 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
+              }`}
+            >
+              <IconComponent className="w-4 h-4" />
+              <span>{cat.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* GRIGLIA SCHEDE LAVORI */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {jobs.map((j, idx) => (
-          <div key={idx} className="bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-purple-500/40 p-7 rounded-3xl flex flex-col justify-between space-y-6 backdrop-blur-xl transition-all duration-200">
-            <div className="space-y-3">
-              <span className="text-[10px] font-bold text-purple-300 bg-purple-500/10 px-3 py-1 rounded-full border border-purple-500/20 uppercase tracking-wider">
-                {j.company_name}
-              </span>
-              <h3 className="font-bold text-white text-xl">{j.title}</h3>
-              <p className="text-xs text-slate-400 leading-relaxed">{j.description}</p>
-            </div>
-            <div className="pt-4 border-t border-slate-800/80 flex justify-between items-center">
-              <div>
-                <span className="text-purple-400 font-black text-lg block">
-                  {j.budget} €
-                </span>
-                <span className="text-[10px] text-slate-500">
-                  (Netto Freelance: €{(j.budget * 0.8).toFixed(0)})
-                </span>
+        {filteredJobs.length > 0 ? (
+          filteredJobs.map((j, idx) => (
+            <div key={idx} className="bg-slate-900/50 hover:bg-slate-900 border border-slate-800/80 p-7 rounded-3xl flex flex-col justify-between space-y-6 backdrop-blur-xl transition-all duration-200">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <img 
+                      src={j.company_avatar || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120"} 
+                      alt="Referente" 
+                      className="w-12 h-12 rounded-2xl border border-slate-700/80 object-cover shadow-md"
+                    />
+                    <div>
+                      <h4 className="text-sm font-bold text-white leading-snug">
+                        {j.poster_name || "Davide Pima"}
+                      </h4>
+                      <span className="text-[11px] text-blue-400 font-medium block">
+                        {j.poster_title || "CTO"} @ <strong className="text-slate-200">{j.company_name}</strong>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* BADGE CATEGORIA SULLA SCHEDA */}
+                  <span className="text-[10px] font-extrabold uppercase px-3 py-1 rounded-full bg-slate-950 border border-slate-800 text-emerald-400">
+                    {CATEGORIES.find(c => c.id === j.category)?.label || 'Generale'}
+                  </span>
+                </div>
+
+                <div className="space-y-2 pt-1 border-t border-slate-800/60">
+                  <h3 className="font-bold text-white text-xl pt-2">{j.title}</h3>
+                  <p className="text-xs text-slate-400 leading-relaxed">{j.description}</p>
+                </div>
               </div>
-              <button onClick={() => handleApply(j)} className="bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-xs font-bold px-5 py-2.5 rounded-xl shadow-md transition-all">
-                Candidati Gratis
-              </button>
+
+              <div className="pt-4 border-t border-slate-800/80 flex justify-between items-center">
+                <div>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider block">Budget Progetto</span>
+                  <span className="text-emerald-400 font-black text-xl flex items-center gap-1">
+                    {j.budget} €
+                  </span>
+                </div>
+                <button onClick={() => alert('Candidatura inviata con successo!')} className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-6 py-3 rounded-xl shadow-lg shadow-blue-600/20 transition-all">
+                  Candidati Ora
+                </button>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="col-span-full py-16 text-center text-slate-500 space-y-2 bg-slate-900/30 rounded-3xl border border-slate-800/50">
+            <Layers className="w-10 h-10 mx-auto text-slate-600" />
+            <p className="text-sm font-semibold">Nessun progetto trovato per questa categoria.</p>
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -268,9 +310,9 @@ function AIconsultanPage() {
     <div className="py-12 max-w-3xl mx-auto space-y-8">
       <div className="text-center space-y-2">
         <h2 className="text-3xl font-black text-white flex items-center justify-center gap-2">
-          <Sparkles className="text-purple-400" /> GhostMatch AI Radar
+          <Sparkles className="text-blue-400" /> Ricerca Intelligente Candidati
         </h2>
-        <p className="text-xs text-slate-400">Descrivi il progetto per calcolare l'affinità vettoriale in tempo reale.</p>
+        <p className="text-xs text-slate-400">Descrivi le esigenze del tuo progetto in linguaggio naturale per calcolare la percentuale di affinità IA.</p>
       </div>
 
       <div className="bg-slate-900/60 border border-slate-800 p-7 rounded-3xl space-y-4 shadow-2xl backdrop-blur-xl">
@@ -278,25 +320,32 @@ function AIconsultanPage() {
           rows="4" 
           value={query} 
           onChange={e => setQuery(e.target.value)} 
-          placeholder="Es: Cerco uno sviluppatore esperto in React, Node e Python per un'app B2B..." 
-          className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors resize-none" 
+          placeholder="Es: Cerco un graphic designer esperto in brand identity o uno sviluppatore React e Python..." 
+          className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-4 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors resize-none" 
         />
-        <button onClick={handleSearch} className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-purple-600/20 text-sm flex items-center justify-center gap-2 transition-all">
-          <Zap className="w-4 h-4" /> {loading ? 'Elaborazione DNA Vettoriale...' : 'Avvia AI Matchmaking'}
+        <button onClick={handleSearch} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 text-white font-bold py-4 rounded-2xl shadow-lg shadow-blue-600/20 text-sm flex items-center justify-center gap-2 transition-all">
+          <Zap className="w-4 h-4" /> {loading ? 'Calcolo vettoriale in corso...' : 'Calcola Match IA'}
         </button>
       </div>
 
       {results.length > 0 && (
         <div className="space-y-4 pt-4">
-          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Candidati Corrispondenti dall'IA</h3>
+          <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Risultati Classificati dall'IA</h3>
           {results.map((f, idx) => (
             <div key={idx} className="bg-slate-900/70 border border-slate-800 p-6 rounded-2xl flex justify-between items-center backdrop-blur-xl">
-              <div>
-                <h4 className="font-bold text-white text-base">{f.name}</h4>
-                <p className="text-xs text-slate-400">{f.title}</p>
+              <div className="flex items-center gap-4">
+                <img 
+                  src={f.avatar || `https://i.pravatar.cc/100?img=${idx + 10}`} 
+                  alt={f.name} 
+                  className="w-12 h-12 rounded-2xl border border-slate-700 object-cover" 
+                />
+                <div>
+                  <h4 className="font-bold text-white text-base">{f.name}</h4>
+                  <p className="text-xs text-blue-400 font-medium">{f.title || "Freelancer Senior"}</p>
+                </div>
               </div>
-              <span className="bg-purple-500/10 text-purple-400 border border-purple-500/20 text-xs font-black px-4 py-2 rounded-xl">
-                {f.match_score}% Match Score
+              <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-black px-4 py-2 rounded-xl">
+                {f.match_score}% Match
               </span>
             </div>
           ))}
@@ -306,16 +355,38 @@ function AIconsultanPage() {
   );
 }
 
-// --- PUBBLICAZIONE LAVORO ---
+// --- PUBBLICAZIONE LAVORO CON SELETTORE CATEGORIA ---
 function PostJobPage() {
-  const [job, setJob] = useState({ company_name: '', title: '', description: '', budget: '' });
+  const [job, setJob] = useState({ 
+    company_name: '', 
+    poster_name: '', 
+    poster_title: '', 
+    company_avatar: '',
+    category: 'dev',
+    title: '', 
+    description: '', 
+    budget: '' 
+  });
+  const [imagePreview, setImagePreview] = useState(null);
   const navigate = useNavigate();
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+        setJob({ ...job, company_avatar: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       await axios.post('http://localhost:5000/api/jobs', job);
-      alert('Progetto pubblicato gratis con successo!');
+      alert('Offerta pubblicata con successo!');
       navigate('/jobs');
     } catch (e) {
       alert('Errore durante la pubblicazione del lavoro');
@@ -325,31 +396,76 @@ function PostJobPage() {
   return (
     <div className="py-12 max-w-lg mx-auto">
       <div className="bg-slate-900/60 border border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-2xl space-y-6">
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-black text-white">Pubblica Progetto</h2>
-          <span className="bg-emerald-500/10 text-emerald-400 text-xs font-bold px-3 py-1 rounded-full border border-emerald-500/20">
-            Gratis (€0)
-          </span>
-        </div>
+        <h2 className="text-2xl font-black text-white">Pubblica una Nuova Offerta</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-400 mb-1">NOME REFERENTE</label>
+              <input type="text" required value={job.poster_name} onChange={e => setJob({...job, poster_name: e.target.value})} placeholder="Davide Pima" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500" />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-slate-400 mb-1">RUOLO / TITOLO</label>
+              <input type="text" required value={job.poster_title} onChange={e => setJob({...job, poster_title: e.target.value})} placeholder="CTO / Founder" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500" />
+            </div>
+          </div>
+
+          {/* SELETTORE CATEGORIA AGGIUNTO */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-400 mb-1">CATEGORIA PROGETTO</label>
+            <select 
+              value={job.category} 
+              onChange={e => setJob({...job, category: e.target.value})}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500"
+            >
+              {CATEGORIES.filter(c => c.id !== 'all').map(c => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* CARICAMENTO FILE IMMAGINE DAL PC */}
+          <div>
+            <label className="block text-[11px] font-bold text-slate-400 mb-1">CARICA FOTO PROFILO / LOGO (DAL PC)</label>
+            <div className="flex items-center gap-4">
+              <label className="flex-1 flex items-center justify-center gap-2 bg-slate-950 hover:bg-slate-900 border border-dashed border-slate-700 hover:border-blue-500 rounded-xl px-4 py-3 cursor-pointer transition-colors text-slate-300 text-xs font-semibold">
+                <Upload className="w-4 h-4 text-blue-400" />
+                <span>Sfoglia e carica file...</span>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                  className="hidden" 
+                />
+              </label>
+
+              {imagePreview && (
+                <img 
+                  src={imagePreview} 
+                  alt="Anteprima" 
+                  className="w-12 h-12 rounded-2xl border border-blue-500 object-cover shadow-md" 
+                />
+              )}
+            </div>
+          </div>
+
           <div>
             <label className="block text-[11px] font-bold text-slate-400 mb-1">NOME AZIENDA</label>
-            <input type="text" required value={job.company_name} onChange={e => setJob({...job, company_name: e.target.value})} placeholder="Tech Corp" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500" />
+            <input type="text" required value={job.company_name} onChange={e => setJob({...job, company_name: e.target.value})} placeholder="Tech Corp" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-slate-400 mb-1">TITOLO DEL LAVORO</label>
-            <input type="text" required value={job.title} onChange={e => setJob({...job, title: e.target.value})} placeholder="Frontend Developer" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500" />
+            <input type="text" required value={job.title} onChange={e => setJob({...job, title: e.target.value})} placeholder="Es: Video Editor per Canale YouTube" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500" />
           </div>
           <div>
             <label className="block text-[11px] font-bold text-slate-400 mb-1">DESCRIZIONE</label>
-            <textarea required rows="3" value={job.description} onChange={e => setJob({...job, description: e.target.value})} placeholder="Descrivi il lavoro..." className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500 resize-none" />
+            <textarea required rows="3" value={job.description} onChange={e => setJob({...job, description: e.target.value})} placeholder="Descrivi il lavoro in modo chiaro..." className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 resize-none" />
           </div>
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1">BUDGET ESCROW (€)</label>
-            <input type="number" required value={job.budget} onChange={e => setJob({...job, budget: e.target.value})} placeholder="1500" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500" />
+            <label className="block text-[11px] font-bold text-slate-400 mb-1">BUDGET (€)</label>
+            <input type="number" required value={job.budget} onChange={e => setJob({...job, budget: e.target.value})} placeholder="1500" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500" />
           </div>
-          <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-purple-600/20 text-sm transition-all">
-            Pubblica Ora Gratis (€0)
+          <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-emerald-600/20 text-sm transition-all">
+            Pubblica Ora Gratis
           </button>
         </form>
       </div>
@@ -357,10 +473,10 @@ function PostJobPage() {
   );
 }
 
-// --- REGISTRAZIONE CON SELEZIONE RUOLO ---
+// --- REGISTRAZIONE ---
 function RegisterPage({ setUser }) {
   const [role, setRole] = useState('freelancer');
-  const [formData, setFormData] = useState({ name: '', email: '', password: '', companyName: '', skills: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const navigate = useNavigate();
 
@@ -371,75 +487,26 @@ function RegisterPage({ setUser }) {
       return;
     }
     setUser({ ...formData, role });
-    alert(`Account ${role === 'freelancer' ? 'Freelancer' : 'Azienda'} creato con successo a costo zero!`);
+    alert(`Account creato con successo! Benvenuto in SkillSync AI.`);
     navigate('/dashboard');
   };
 
   return (
     <div className="max-w-md mx-auto py-12">
       <div className="bg-slate-900/60 border border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-2xl space-y-6">
-        <div className="text-center space-y-1">
-          <h2 className="text-2xl font-black text-white">Crea Account Gratis</h2>
-          <p className="text-xs text-purple-400 font-bold">Nessun costo iniziale o canone mensile (€0)</p>
-        </div>
-
-        {/* SELETTORE RUOLO */}
-        <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-950 rounded-2xl border border-slate-800">
-          <button
-            type="button"
-            onClick={() => setRole('freelancer')}
-            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-              role === 'freelancer'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <User className="w-4 h-4" />
-            Sono Freelancer
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setRole('company')}
-            className={`py-3 px-2 rounded-xl text-xs font-bold transition-all flex flex-col items-center gap-1 ${
-              role === 'company'
-                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/30'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Building2 className="w-4 h-4" />
-            Sono un'Azienda
-          </button>
-        </div>
-
+        <h2 className="text-2xl font-black text-white text-center">Crea il tuo Account</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-[11px] font-bold text-slate-400 mb-1">NOME E COGNOME</label>
-            <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Mario Rossi" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-purple-500" />
+            <label className="block text-[11px] font-bold text-slate-400 mb-1">NOME COMPLETO</label>
+            <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white" />
           </div>
-
-          {role === 'company' && (
-            <div>
-              <label className="block text-[11px] font-bold text-slate-400 mb-1">NOME AZIENDA</label>
-              <input type="text" required value={formData.companyName} onChange={e => setFormData({...formData, companyName: e.target.value})} placeholder="Tech Corp S.r.l." className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-purple-500" />
-            </div>
-          )}
-
-          {role === 'freelancer' && (
-            <div>
-              <label className="block text-[11px] font-bold text-slate-400 mb-1">COMPETENZE PRINCIPALI</label>
-              <input type="text" value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} placeholder="React, Python, Node.js" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-purple-500" />
-            </div>
-          )}
-
           <div>
             <label className="block text-[11px] font-bold text-slate-400 mb-1">EMAIL</label>
-            <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="mario@example.com" className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-purple-500" />
+            <input type="email" required value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white" />
           </div>
-
           <div>
             <label className="block text-[11px] font-bold text-slate-400 mb-1">PASSWORD</label>
-            <input type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:border-purple-500" />
+            <input type="password" required value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white" />
           </div>
 
           <div className="flex items-start gap-2 pt-2">
@@ -449,15 +516,15 @@ function RegisterPage({ setUser }) {
               checked={acceptedTerms} 
               onChange={e => setAcceptedTerms(e.target.checked)} 
               id="terms" 
-              className="mt-1 w-4 h-4 rounded border-slate-800 bg-slate-950 text-purple-600 focus:ring-purple-500" 
+              className="mt-1 w-4 h-4 rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500" 
             />
             <label htmlFor="terms" className="text-xs text-slate-400 leading-relaxed">
-              Accetto i <Link to="/terms" target="_blank" className="text-purple-400 underline">Termini di Servizio</Link> e la <Link to="/privacy" target="_blank" className="text-purple-400 underline">Privacy Policy (GDPR)</Link>
+              Accetto i <Link to="/terms" target="_blank" className="text-blue-400 underline">Termini di Servizio</Link> e la <Link to="/privacy" target="_blank" className="text-blue-400 underline">Privacy Policy (GDPR)</Link>
             </label>
           </div>
 
-          <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-purple-600/20 transition-all">
-            Registrati come {role === 'freelancer' ? 'Freelancer' : 'Azienda'} (€0)
+          <button type="submit" className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 rounded-xl text-sm shadow-lg shadow-blue-600/20 transition-all">
+            Completa Registrazione
           </button>
         </form>
       </div>
@@ -468,16 +535,15 @@ function RegisterPage({ setUser }) {
 // --- MAIN APP ROUTER ---
 export default function App() {
   const [user, setUser] = useState(null);
-  const [mode, setMode] = useState('freelancer');
 
   return (
     <Router>
-      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between selection:bg-purple-500 selection:text-white">
+      <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col justify-between selection:bg-blue-500 selection:text-white">
         <div>
-          <Navbar user={user} setUser={setUser} mode={mode} setMode={setMode} />
+          <Navbar user={user} setUser={setUser} />
           <main className="max-w-7xl mx-auto px-6">
             <Routes>
-              <Route path="/" element={<HomePage mode={mode} />} />
+              <Route path="/" element={<HomePage />} />
               <Route path="/jobs" element={<JobsPage />} />
               <Route path="/freelancers" element={<AIconsultanPage />} />
               <Route path="/post-job" element={<PostJobPage />} />
