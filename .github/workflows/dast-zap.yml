@@ -1,0 +1,28 @@
+name: DAST - OWASP ZAP Scan
+
+on:
+  workflow_dispatch: # Ti permette di avviarlo manualmente con un clic su GitHub quando vuoi
+  push:
+    branches: [ main ]
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the web application with OWASP ZAP
+    steps:
+      - name: Checkout del codice
+        uses: actions/checkout@v4
+
+      - name: Avvio dell'applicazione (es. Docker Compose o Node)
+        run: |
+          # Qui avviamo l'app in background per permettere a ZAP di scansionarla
+          # Se usi docker-compose, sostituisci con: docker-compose up -d
+          cd backend && npm install && npm start &
+          sleep 10 # Aspettiamo 10 secondi che il server sia pronto
+
+      - name: Esecuzione OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: 'http://localhost:3000' # Cambia la porta se il tuo backend gira su un'altra (es. 5000 o 8080)
+          allow_issue_writing: false # Evita che crei issue automatiche se trova warning minori
+          fail_action: false # Impostato a false così la pipeline non fallisce per semplici warning (es. header) ma genera comunque il report
